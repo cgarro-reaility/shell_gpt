@@ -108,7 +108,6 @@ class Handler:
         messages: List[Dict[str, Any]],
         functions: Optional[List[Dict[str, str]]],
     ) -> Generator[str, None, None]:
-        tool_call_id = name = arguments = ""
         is_shell_role = self.role.name == DefaultRoles.SHELL.value
         is_code_role = self.role.name == DefaultRoles.CODE.value
         is_dsc_shell_role = self.role.name == DefaultRoles.DESCRIBE_SHELL.value
@@ -130,6 +129,9 @@ class Handler:
         )
 
         try:
+            # We need to track each tool call separately by index
+            tool_calls_dict = {}
+            
             for chunk in response:
                 if not chunk.choices:
                     continue
@@ -141,29 +143,40 @@ class Handler:
                 )
                 if tool_calls:
                     for tool_call in tool_calls:
+                        idx = tool_call.get("index") if use_litellm else tool_call.index
+                        if idx not in tool_calls_dict:
+                            tool_calls_dict[idx] = {"id": "", "name": "", "arguments": ""}
+                            
                         if use_litellm:
-                            # TODO: test.
-                            tool_call_id = tool_call.get("id") or tool_call_id
-                            name = tool_call.get("function", {}).get("name") or name
-                            arguments += tool_call.get("function", {}).get(
-                                "arguments", ""
-                            )
+                            if tool_call.get("id"):
+                                tool_calls_dict[idx]["id"] = tool_call.get("id")
+                            if tool_call.get("function", {}).get("name"):
+                                tool_calls_dict[idx]["name"] = tool_call.get("function", {}).get("name")
+                            if tool_call.get("function", {}).get("arguments"):
+                                tool_calls_dict[idx]["arguments"] += tool_call.get("function", {}).get("arguments")
                         else:
-                            tool_call_id = tool_call.id or tool_call_id
-                            name = tool_call.function.name or name
-                            arguments += tool_call.function.arguments or ""
+                            if tool_call.id:
+                                tool_calls_dict[idx]["id"] = tool_call.id
+                            if tool_call.function.name:
+                                tool_calls_dict[idx]["name"] = tool_call.function.name
+                            if tool_call.function.arguments:
+                                tool_calls_dict[idx]["arguments"] += tool_call.function.arguments
+                                
                 if chunk.choices[0].finish_reason == "tool_calls":
-                    yield from self.handle_function_call(
-                        messages, tool_call_id, name, arguments
-                    )
-                    yield from self.get_completion(
-                        model=model,
-                        temperature=temperature,
-                        top_p=top_p,
-                        messages=messages,
-                        functions=functions,
-                        caching=False,
-                    )
+                    # For now, we only handle the first tool call to match original behavior
+                    if tool_calls_dict:
+                        first_call = tool_calls_dict[0]
+                        yield from self.handle_function_call(
+                            messages, first_call["id"], first_call["name"], first_call["arguments"]
+                        )
+                        yield from self.get_completion(
+                            model=model,
+                            temperature=temperature,
+                            top_p=top_p,
+                            messages=messages,
+                            functions=functions,
+                            caching=False,
+                        )
                     return
 
                 yield delta.content or ""
