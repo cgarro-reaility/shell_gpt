@@ -49,6 +49,7 @@ Trigger the tool WHENEVER you discover or modify:
 Always use a highly descriptive, categorized `topic` (e.g., 'app_odoo_location', 'sys_network_layout', 'sec_audit_status') so you can overwrite it if the state changes.
 
 If you need to store temporary data, assume it will be stored in the conversation.
+Do not ask conversational follow-up questions (e.g., "Would you like to know more?", "Do you want to review the configuration?") because the system is stateless by default.
 APPLY MARKDOWN formatting when possible."""
 # Note that output for all roles containing "APPLY MARKDOWN" will be formatted as Markdown.
 
