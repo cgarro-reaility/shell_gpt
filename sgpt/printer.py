@@ -2,10 +2,11 @@ import time
 from abc import ABC, abstractmethod
 from typing import Generator
 
-from rich.console import Console
+from rich.console import Console, Group
 from rich.live import Live
 from rich.live_render import VerticalOverflowMethod
 from rich.markdown import Markdown
+from rich.spinner import Spinner
 from typer import secho
 
 
@@ -43,12 +44,17 @@ class MarkdownPrinter(Printer):
 
     def live_print(self, chunks: Generator[str, None, None]) -> str:
         full_completion = ""
+        spinner = Spinner("dots", text="Thinking / Executing...")
         with Live(
             console=self.console,
             vertical_overflow=self.vertical_overflow,
-            auto_refresh=False,
+            auto_refresh=True,
+            refresh_per_second=15,
         ) as live:
             last_refresh = time.monotonic()
+            # Initial state
+            live.update(Group(Markdown(markup=full_completion, code_theme=self.theme), spinner))
+            
             for chunk in chunks:
                 full_completion += chunk
                 if (
@@ -56,15 +62,13 @@ class MarkdownPrinter(Printer):
                     or time.monotonic() - last_refresh >= self.refresh_interval
                 ):
                     live.update(
-                        Markdown(markup=full_completion, code_theme=self.theme),
-                        refresh=True,
+                        Group(Markdown(markup=full_completion, code_theme=self.theme), spinner)
                     )
                     last_refresh = time.monotonic()
 
             # Ensure the complete output is always rendered when streaming finishes.
             live.update(
-                Markdown(markup=full_completion, code_theme=self.theme),
-                refresh=True,
+                Markdown(markup=full_completion, code_theme=self.theme)
             )
 
         return full_completion
