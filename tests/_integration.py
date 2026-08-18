@@ -36,7 +36,7 @@ class TestShellGpt(TestCase):
         # Response streaming should be enabled for these tests.
         assert cfg.get("DISABLE_STREAMING") == "false"
         # ShellGPT optimised and tested with gemini-pro-latest.
-        assert cfg.get("DEFAULT_MODEL") == "gemini-pro-latest"
+        assert cfg.get("DEFAULT_MODEL") == "gemini/gemini-pro-latest"
         # Make sure we will not call any functions.
         assert cfg.get("OPENAI_USE_FUNCTIONS") == "false"
 

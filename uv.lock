@@ -3385,6 +3385,7 @@ dependencies = [
     { name = "chromadb" },
     { name = "click" },
     { name = "distro" },
+    { name = "litellm" },
     { name = "openai" },
     { name = "prompt-toolkit" },
     { name = "pyreadline3", marker = "sys_platform == 'win32'" },
@@ -3396,9 +3397,6 @@ dependencies = [
 dev = [
     { name = "pre-commit" },
     { name = "ruff" },
-]
-litellm = [
-    { name = "litellm" },
 ]
 test = [
     { name = "black" },
@@ -3418,7 +3416,7 @@ requires-dist = [
     { name = "codespell", marker = "extra == 'test'", specifier = ">=2.2.5,<3.0.0" },
     { name = "distro", specifier = ">=1.8.0,<2.0.0" },
     { name = "isort", marker = "extra == 'test'", specifier = ">=5.12.0,<6.0.0" },
-    { name = "litellm", marker = "extra == 'litellm'", specifier = ">=1.97.0" },
+    { name = "litellm", specifier = ">=1.97.0" },
     { name = "mypy", marker = "extra == 'test'", specifier = "==1.1.1" },
     { name = "openai", specifier = ">=2.0.0,<3.0.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.1.1,<4.0.0" },
