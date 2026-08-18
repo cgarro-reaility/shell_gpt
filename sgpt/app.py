@@ -31,8 +31,8 @@ def main(
         help="The prompt to generate completions for.",
     ),
     model: str = typer.Option(
-        cfg.get("DEFAULT_MODEL"),
-        help="Large language model to use.",
+        None,
+        help="Large language model to use. Defaults to contextual Gemini models.",
     ),
     temperature: float = typer.Option(
         cfg.get("DEFAULT_TEMPERATURE"),
@@ -155,6 +155,10 @@ def main(
         callback=inst_funcs,
         hidden=True,  # Hiding since should be used only once.
     ),
+    init_memory: bool = typer.Option(
+        False,
+        help="Initialize system memory by running a high-level scan of the system.",
+    ),
 ) -> None:
     stdin_passed = not sys.stdin.isatty()
 
@@ -186,6 +190,33 @@ def main(
     if show_chat:
         ChatHandler.show_messages(show_chat, md)
 
+    if init_memory:
+        init_prompt = (
+            "Usa execute_shell_command para explorar el sistema (dockers activos, "
+            "carpetas en /var/www o ~, etc). Sintetiza la topología y usa "
+            "save_memory para guardar los hechos importantes. No modifiques nada."
+        )
+        typer.echo("Initializing system memory by scanning the environment...")
+        
+        # Enable functions if not explicitly disabled
+        function_schemas = get_openai_schemas() or None
+        
+        if not model:
+            model = cfg.get("GEMINI_REASONING_MODEL")
+            
+        role_class = SystemRole.get(DefaultRoles.DEFAULT.value)
+        
+        DefaultHandler(role_class, md).handle(
+            prompt=init_prompt,
+            model=model,
+            temperature=temperature,
+            top_p=top_p,
+            caching=False,
+            functions=function_schemas,
+        )
+        typer.echo("\nMemory initialization completed.")
+        return
+
     if sum((shell, describe_shell, code)) > 1:
         raise UsageError(
             "Only one of --shell, --describe-shell, and --code options can be used at a time."
@@ -199,6 +230,14 @@ def main(
 
     if editor:
         prompt = get_edited_prompt()
+
+    if not model:
+        if shell or code:
+            model = cfg.get("GEMINI_EXECUTION_MODEL")
+        elif describe_shell:
+            model = cfg.get("GEMINI_LIGHTWEIGHT_MODEL")
+        else:
+            model = cfg.get("GEMINI_REASONING_MODEL")
 
     role_class = (
         DefaultRoles.check_get(shell, describe_shell, code)

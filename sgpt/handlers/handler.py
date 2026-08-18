@@ -182,6 +182,22 @@ class Handler:
     ) -> str:
         disable_stream = cfg.get("DISABLE_STREAMING") == "true"
         messages = self.make_messages(prompt.strip())
+        
+        # Inject memories
+        try:
+            from sgpt.memory import get_relevant_memories
+            memories = get_relevant_memories(prompt.strip())
+            if memories:
+                memory_text = "\n".join([f"- {m}" for m in memories])
+                # Find the first system message and append memories to it, or insert a new one
+                system_message_index = next((i for i, m in enumerate(messages) if m["role"] == "system"), -1)
+                if system_message_index >= 0:
+                    messages[system_message_index]["content"] += f"\n\nSystem Memories:\n{memory_text}"
+                else:
+                    messages.insert(0, {"role": "system", "content": f"System Memories:\n{memory_text}"})
+        except ImportError:
+            pass
+            
         generator = self.get_completion(
             model=model,
             temperature=temperature,

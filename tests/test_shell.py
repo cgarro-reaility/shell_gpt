@@ -16,7 +16,7 @@ def test_shell(completion):
     args = {"prompt": "make a commit using git", "--shell": True}
     result = runner.invoke(app, cmd_args(**args))
 
-    completion.assert_called_once_with(**comp_args(role, args["prompt"]))
+    completion.assert_called_once_with(**comp_args(role, args["prompt"], model=cfg.get("GEMINI_EXECUTION_MODEL")))
     assert "git commit" in result.output
     assert "[E]xecute, [M]odify, [D]escribe, [A]bort:" in result.output
 
@@ -45,7 +45,7 @@ def test_shell_stdin(completion):
     result = runner.invoke(app, cmd_args(**args), input=stdin)
 
     expected_prompt = f"{stdin}\n\n{args['prompt']}"
-    completion.assert_called_once_with(**comp_args(role, expected_prompt))
+    completion.assert_called_once_with(**comp_args(role, expected_prompt, model=cfg.get("GEMINI_EXECUTION_MODEL")))
     assert "ls -l | sort" in result.output
     assert "[E]xecute, [M]odify, [D]escribe, [A]bort:" in result.output
 
@@ -58,7 +58,7 @@ def test_describe_shell(completion):
     args = {"prompt": "ls", "--describe-shell": True}
     result = runner.invoke(app, cmd_args(**args))
 
-    completion.assert_called_once_with(**comp_args(role, args["prompt"]))
+    completion.assert_called_once_with(**comp_args(role, args["prompt"], model=cfg.get("GEMINI_LIGHTWEIGHT_MODEL")))
     assert result.exit_code == 0
     assert "lists" in result.output
 
@@ -73,7 +73,7 @@ def test_describe_shell_stdin(completion):
     result = runner.invoke(app, cmd_args(**args), input=stdin)
 
     expected_prompt = f"{stdin}"
-    completion.assert_called_once_with(**comp_args(role, expected_prompt))
+    completion.assert_called_once_with(**comp_args(role, expected_prompt, model=cfg.get("GEMINI_LIGHTWEIGHT_MODEL")))
     assert result.exit_code == 0
     assert "lists" in result.output
 
@@ -116,7 +116,7 @@ def test_shell_chat(completion):
         {"role": "user", "content": "sort by name"},
         {"role": "assistant", "content": "ls | sort"},
     ]
-    expected_args = comp_args(role, "", messages=expected_messages)
+    expected_args = comp_args(role, "", messages=expected_messages, model=cfg.get("GEMINI_EXECUTION_MODEL"))
     completion.assert_called_with(**expected_args)
     assert completion.call_count == 2
 
@@ -149,7 +149,7 @@ def test_shell_repl(completion, mock_system):
         {"role": "user", "content": "sort by name"},
         {"role": "assistant", "content": "ls | sort"},
     ]
-    expected_args = comp_args(role, "", messages=expected_messages)
+    expected_args = comp_args(role, "", messages=expected_messages, model=cfg.get("GEMINI_EXECUTION_MODEL"))
     completion.assert_called_with(**expected_args)
     assert completion.call_count == 2
 
@@ -181,7 +181,7 @@ def test_shell_no_interaction(completion):
     }
     result = runner.invoke(app, cmd_args(**args))
 
-    completion.assert_called_once_with(**comp_args(role, args["prompt"]))
+    completion.assert_called_once_with(**comp_args(role, args["prompt"], model=cfg.get("GEMINI_EXECUTION_MODEL")))
     assert result.exit_code == 0
     assert "git commit" in result.output
     assert "[E]xecute" not in result.output

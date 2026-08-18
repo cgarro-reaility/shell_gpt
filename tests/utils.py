@@ -61,7 +61,7 @@ def comp_args(role, prompt, **kwargs):
             {"role": "system", "content": role.role},
             {"role": "user", "content": prompt},
         ],
-        "model": cfg.get("DEFAULT_MODEL"),
+        "model": kwargs.pop("model", cfg.get("DEFAULT_MODEL")),
         "temperature": 0.0,
         "top_p": 1.0,
         "stream": True,

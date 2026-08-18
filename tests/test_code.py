@@ -16,7 +16,7 @@ def test_code_generation(completion):
     args = {"prompt": "hello world python", "--code": True}
     result = runner.invoke(app, cmd_args(**args))
 
-    completion.assert_called_once_with(**comp_args(role, args["prompt"]))
+    completion.assert_called_once_with(**comp_args(role, args["prompt"], model=cfg.get("GEMINI_EXECUTION_MODEL")))
     assert result.exit_code == 0
     assert "print('Hello World')" in result.output
 
@@ -45,7 +45,7 @@ def test_code_generation_stdin(completion):
     result = runner.invoke(app, cmd_args(**args), input=stdin)
 
     expected_prompt = f"{stdin}\n\n{args['prompt']}"
-    completion.assert_called_once_with(**comp_args(role, expected_prompt))
+    completion.assert_called_once_with(**comp_args(role, expected_prompt, model=cfg.get("GEMINI_EXECUTION_MODEL")))
     assert result.exit_code == 0
     assert "# Hello" in result.output
     assert "print('Hello')" in result.output
@@ -80,7 +80,7 @@ def test_code_chat(completion):
         {"role": "user", "content": "also print world"},
         {"role": "assistant", "content": "print('hello')\nprint('world')"},
     ]
-    expected_args = comp_args(role, "", messages=expected_messages)
+    expected_args = comp_args(role, "", messages=expected_messages, model=cfg.get("GEMINI_EXECUTION_MODEL"))
     completion.assert_called_with(**expected_args)
     assert completion.call_count == 2
 
@@ -112,7 +112,7 @@ def test_code_repl(completion):
         {"role": "user", "content": "also print world"},
         {"role": "assistant", "content": "print('hello')\nprint('world')"},
     ]
-    expected_args = comp_args(role, "", messages=expected_messages)
+    expected_args = comp_args(role, "", messages=expected_messages, model=cfg.get("GEMINI_EXECUTION_MODEL"))
     completion.assert_called_with(**expected_args)
     assert completion.call_count == 2
 
