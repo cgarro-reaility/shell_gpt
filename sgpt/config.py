@@ -65,9 +65,13 @@ class Config(dict):  # type: ignore
         else:
             config_path.parent.mkdir(parents=True, exist_ok=True)
             # Don't write API key to config file if it is in the environment.
-            if not defaults.get("OPENAI_API_KEY") and not os.getenv("OPENAI_API_KEY"):
-                __api_key = getpass(prompt="Please enter your OpenAI API key: ")
+            if not defaults.get("GEMINI_API_KEY") and not os.getenv("GEMINI_API_KEY"):
+                __api_key = getpass(prompt="Please enter your Gemini API key: ")
+                defaults["GEMINI_API_KEY"] = __api_key
+                # Also set OPENAI_API_KEY for backward compatibility in the code
                 defaults["OPENAI_API_KEY"] = __api_key
+            elif not defaults.get("OPENAI_API_KEY"):
+                defaults["OPENAI_API_KEY"] = os.getenv("GEMINI_API_KEY") or defaults.get("GEMINI_API_KEY")
             super().__init__(**defaults)
             self._write()
 
