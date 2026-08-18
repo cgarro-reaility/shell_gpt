@@ -26,7 +26,7 @@ DEFAULT_CONFIG = {
     "GEMINI_REASONING_MODEL": os.getenv("GEMINI_REASONING_MODEL", "gemini/gemini-pro-latest"),
     "GEMINI_EXECUTION_MODEL": os.getenv("GEMINI_EXECUTION_MODEL", "gemini/gemini-flash-latest"),
     "GEMINI_LIGHTWEIGHT_MODEL": os.getenv("GEMINI_LIGHTWEIGHT_MODEL", "gemini/gemini-flash-lite-latest"),
-    "DEFAULT_TEMPERATURE": os.getenv("DEFAULT_TEMPERATURE", 0.0),
+    "DEFAULT_TEMPERATURE": os.getenv("DEFAULT_TEMPERATURE", "0.0"),
     "DEFAULT_COLOR": os.getenv("DEFAULT_COLOR", "magenta"),
     "ROLE_STORAGE_PATH": os.getenv("ROLE_STORAGE_PATH", str(ROLE_STORAGE_PATH)),
     "DEFAULT_EXECUTE_SHELL_CMD": os.getenv("DEFAULT_EXECUTE_SHELL_CMD", "false"),
